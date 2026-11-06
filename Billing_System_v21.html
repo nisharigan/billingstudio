@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Billing Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--m:#7C3AED;--ink:#14161c;--mut:#6b7280;--bd:#e3e6ec;--bg:#e9ecf1;--fh:'Plus Jakarta Sans',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13px/1.45 Inter,system-ui,sans-serif;color:var(--ink);background:var(--bg);height:100vh;overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+.top{height:56px;background:#fff;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:14px;padding:0 18px}
+.brand{font:800 15px var(--fh);display:flex;gap:10px;align-items:center;margin-right:6px}
+.mark{width:26px;height:26px;border-radius:8px;background:var(--m)}
+.seg{display:inline-flex;background:#eff1f5;border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:none;padding:6px 14px;border-radius:8px;font:600 12.5px Inter;color:var(--mut)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.docno{font:600 12px Inter;color:var(--mut);margin-left:4px}
+.sp{flex:1}
+.saved{font-size:11.5px;color:var(--mut)}
+.btn{border:1px solid var(--bd);background:#fff;border-radius:9px;padding:8px 13px;font:600 12.5px Inter;display:inline-flex;gap:7px;align-items:center;color:var(--ink)}
+.btn:hover{background:#f6f7fa}
+.btn.pri{background:var(--m);border-color:var(--m);color:#fff}.btn.pri:hover{filter:brightness(.93)}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.app{display:grid;grid-template-columns:minmax(380px,450px) 1fr;height:calc(100vh - 56px)}
+.edit{overflow:auto;background:#fff;border-right:1px solid var(--bd)}
+details{border-bottom:1px solid var(--bd)}
+summary{list-style:none;padding:15px 20px;font:700 13.5px var(--fh);cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'';width:7px;height:7px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(45deg);transition:transform .15s;margin-right:4px}
+details[open] summary::after{transform:rotate(-135deg)}
+summary small{font:500 11.5px Inter;color:var(--mut);margin-left:8px}
+.sec{padding:2px 20px 20px;display:grid;gap:12px}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.s2{grid-column:span 2}
+.f{display:grid;gap:5px;font:600 11.5px Inter;color:var(--mut);align-content:start}
+.f em{font-style:normal;font-weight:500;float:right;color:var(--m);cursor:pointer}
+input,select,textarea{font:13px Inter;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:#fff;color:var(--ink);width:100%;min-width:0}
+textarea{resize:vertical;min-height:72px;line-height:1.5}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid color-mix(in srgb,var(--m) 40%,transparent);border-color:var(--m)}
+.h{font:700 12px Inter;color:var(--ink);display:flex;justify-content:space-between;align-items:baseline;margin-top:4px}
+.h span{font-weight:500;color:var(--mut);font-size:11.5px}
+.row{display:grid;gap:8px;margin-bottom:8px;align-items:center}
+.rm{border:0;background:none;color:#9aa1ad;font-size:19px;line-height:1;border-radius:6px;height:30px}.rm:hover{color:#c0392b;background:#fdecea}
+.add{border:1px dashed var(--m);color:var(--m);background:none;border-radius:9px;padding:8px;font:600 12.5px Inter;width:100%}
+.add:hover{background:color-mix(in srgb,var(--m) 7%,#fff)}
+.sum{background:#f6f7fa;border-radius:10px;padding:12px 14px;display:grid;gap:5px}
+.sum div{display:flex;justify-content:space-between}.sum .t{font-weight:700;border-top:1px solid var(--bd);padding-top:7px;margin-top:3px;font-size:14px}
+.sw{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:11px 13px;border:1px solid var(--bd);border-radius:10px}
+.sw b{display:block;font-size:13px}.sw small{color:var(--mut);font-size:11.5px}
+.sw input{appearance:none;width:40px;height:23px;border-radius:12px;background:#d4d8e0;position:relative;border:0;flex-shrink:0;cursor:pointer;transition:background .15s;padding:0}
+.sw input::after{content:'';position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.sw input:checked{background:var(--m)}.sw input:checked::after{left:20px}
+.logo{border:1.5px dashed var(--bd);border-radius:10px;padding:12px;display:flex;align-items:center;gap:12px}
+.logo img{max-height:44px;max-width:120px;background:#f1f2f6;border-radius:6px;padding:4px}
+.logo span{flex:1;color:var(--mut);font-size:12px}
+.cp{display:flex;gap:12px;align-items:center}
+.wheel{width:52px;height:52px;border-radius:50%;background:conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);position:relative;flex-shrink:0}
+.wheel::before{content:'';position:absolute;inset:5px;border-radius:50%;background:var(--m);border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.wheel input{position:absolute;inset:0;opacity:0;width:100%;height:100%;padding:0;cursor:pointer}
+.sws{display:flex;gap:7px;flex-wrap:wrap}.sws i{width:24px;height:24px;border-radius:50%;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.sws i.on{outline:2px solid var(--ink);outline-offset:2px}
+.view{overflow:auto;padding:26px 20px 70px;position:relative}
+#sizer{margin:0 auto}#scaler{width:794px;transform-origin:top left}
+.zoom{position:fixed;bottom:18px;right:24px;background:#fff;border:1px solid var(--bd);border-radius:11px;display:flex;align-items:center;box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.zoom button{border:0;background:none;padding:8px 12px;font:600 13px Inter}.zoom span{font:600 12px Inter;min-width:46px;text-align:center;color:var(--mut)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,80px);background:#14161c;color:#fff;padding:10px 20px;border-radius:10px;font-weight:600;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.load{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;color:#fff;font-weight:600;z-index:98}.load.show{display:flex}
+.pvbtn{display:none}
+body[data-t=invoice] .q,body[data-t=quotation] .i{display:none!important}
+
+[hidden]{display:none!important}
+.dirb{max-width:190px}.dirb span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.lib .app,body.lib .ed{display:none!important}
+#libCnt{margin-left:6px;background:var(--m);color:#fff;border-radius:10px;padding:0 7px;font-size:10.5px}#libCnt:empty{display:none}
+#libv{display:none;height:calc(100vh - 56px);overflow:auto;padding:24px 28px 50px}
+body.lib #libv{display:block}
+.lw{max-width:1200px;margin:0 auto;display:grid;gap:16px}
+.lh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lh h2{font:800 21px var(--fh)}.lh small{color:var(--mut);font-size:12px;display:block;margin-top:2px}
+.empty{background:#fff;border:1px dashed #cdd2db;border-radius:14px;padding:46px 30px;text-align:center;display:grid;gap:12px;justify-items:center}
+.empty h3{font:800 17px var(--fh)}.empty p{color:var(--mut);max-width:480px;line-height:1.6}.empty .warn{color:#b45309}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.st{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:13px 15px}
+.st small{display:block;font:700 10px Inter;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}.st b{font:800 17px var(--fh)}
+.flt{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px;align-items:end}
+.flt .qw{grid-column:span 5}
+.lt{background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+.lr{display:grid;grid-template-columns:150px 78px 1.3fr 1.2fr 110px 118px 92px 112px;gap:12px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--bd)}
+.lr:last-child{border:0}.lr:not(.hd):hover{background:#f8f9fc}
+.lr.hd{background:#f6f7fa;font:700 10px Inter;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);padding:9px 16px}
+.lr b{display:block;font-weight:600;font-size:12.5px;overflow:hidden;text-overflow:ellipsis}
+.lr small{display:block;color:var(--mut);font-size:11px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lr .rt{text-align:right}.lr .act{display:flex;gap:6px;justify-content:flex-end}.lr .btn{padding:5px 10px;font-size:12px}
+.lr .mut{color:var(--mut);font-size:12px}
+.pl{display:inline-block;padding:2px 9px;border-radius:20px;font:700 10.5px Inter}
+.pl.paid{background:#dcfce7;color:#166534}.pl.partial{background:#fef3c7;color:#92400e}.pl.unpaid{background:#fee2e2;color:#991b1b}
+.pl.quo{background:#ede9fe;color:#5b21b6}.pl.inv{background:#e0f2fe;color:#075985}.pl.na{background:#eef0f4;color:#6b7280}
+.none{padding:40px;text-align:center;color:var(--mut)}
+.seg.sm button{padding:5px 10px;font-size:12px}
+.steps{text-align:left;max-width:600px;line-height:1.65;color:var(--ink);font-size:12.5px;display:grid;gap:6px;padding-left:20px}
+.steps code,.empty code{background:#f1f2f6;border-radius:5px;padding:1px 6px;font-size:11.5px}
+.cid{display:flex;gap:8px;width:100%;max-width:600px}
+@media(max-width:1420px){.saved{display:none}}
+@media(max-width:900px){#libv{padding:14px}.stats{grid-template-columns:1fr 1fr}.flt{grid-template-columns:1fr 1fr}.flt .qw{grid-column:span 2}.lr.hd{display:none}.lr{grid-template-columns:1fr 1fr}.lr .act{justify-content:flex-start}}
+/* ===== DOCUMENT ===== */
+#doc{width:794px;min-height:1123px;background:#fff;color:#1a1a1a;position:relative;box-shadow:0 2px 4px rgba(0,0,0,.06),0 18px 40px -18px rgba(0,0,0,.3);font-family:Inter,sans-serif;font-variant-numeric:tabular-nums;display:flex;flex-direction:column}
+#doc .hf{font-family:var(--hf,'Plus Jakarta Sans'),sans-serif}
+.dh{padding:30px 40px;display:flex;justify-content:space-between;align-items:center;gap:20px;position:relative}
+.dh.gradient{background:linear-gradient(135deg,var(--dm),var(--dd));color:#fff}
+.dh.solid{background:var(--dm);color:#fff}
+.dh.light{background:var(--dt);color:var(--dd);border-bottom:3px solid var(--dm)}
+.dh.minimal{color:var(--dd);border-bottom:3px solid var(--dm);padding-bottom:24px}
+.dh img{max-height:62px;max-width:190px;object-fit:contain;display:block}
+.ini{width:52px;height:52px;border-radius:13px;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font:800 16px var(--hf,'Plus Jakarta Sans');opacity:.9}
+.dh .nm{font:800 17px var(--hf,'Plus Jakarta Sans');margin-bottom:2px}.dh .tg{font-size:11px;opacity:.75}
+.dr{text-align:right;flex-shrink:0}
+.badge{display:inline-block;border:1px solid currentColor;border-radius:20px;padding:3px 11px;font:700 9px Inter;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;opacity:.9}
+.dn{font:800 15px var(--hf,'Plus Jakarta Sans')}.dd2{font-size:10.5px;opacity:.78;margin-top:4px;line-height:1.7}
+.chips{display:flex;background:var(--dtm)}
+.chip{flex:1;padding:14px 22px;border-right:1px solid rgba(0,0,0,.06)}.chip:first-child{padding-left:40px}.chip:last-child{border:0}
+.cl{font:700 8.5px Inter;letter-spacing:.13em;text-transform:uppercase;color:var(--dk);margin-bottom:4px}
+.cv{font:700 13px var(--hf,'Plus Jakarta Sans');color:var(--dd)}.cs{font-size:10.5px;color:#6b7280;margin-top:2px}
+.ph{opacity:.45}
+.db{padding:26px 40px 20px;flex:1}
+.ds{margin-bottom:22px}
+.dsh{display:flex;align-items:center;gap:8px;margin-bottom:11px;font:700 9.5px var(--hf,'Plus Jakarta Sans');letter-spacing:.14em;text-transform:uppercase;color:var(--dk)}
+.dsh::before{content:'';width:4px;height:13px;border-radius:3px;background:var(--dm)}
+.sch{background:var(--dt);border:1px solid var(--dl);border-radius:10px;padding:2px 18px}
+.sr{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.06)}.sr:last-child{border:0}
+.sr i{width:7px;height:7px;border-radius:50%;background:var(--dm)}.sr b{flex:1;font:700 12px var(--hf,'Plus Jakarta Sans')}.sr span{font-size:11px;color:#666}
+.pk{display:flex;justify-content:space-between;gap:14px;padding:13px 15px;border-radius:9px;background:rgba(0,0,0,.02)}
+.pk b{font:700 13px var(--hf,'Plus Jakarta Sans')}.pk small{display:block;font-size:10.5px;color:#8a8f98;margin-top:3px}.pk .am{font:800 14.5px var(--hf,'Plus Jakarta Sans');white-space:nowrap}
+table{width:100%;border-collapse:collapse}
+th{background:var(--dt);color:var(--dk);font:700 8.5px Inter;letter-spacing:.11em;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1.5px solid var(--dtm)}
+th:last-child,td:last-child{text-align:right}
+td{padding:9px 12px;border-bottom:1px solid #f1f1f4;font-size:11.5px;color:#333}td:last-child{font-weight:600;color:#1a1a1a}
+td.dc,td.dc:last-child{color:#d97706}
+.sub{display:flex;justify-content:flex-end;gap:32px;padding:9px 12px 0;font-size:11px;color:#888}.sub b{color:#1a1a1a}
+.tot{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}
+.tb{border-radius:12px;padding:17px 21px}
+.tb .l{font:700 8.5px Inter;letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px}.tb .v{font:800 23px var(--hf,'Plus Jakarta Sans');letter-spacing:-.01em}
+.tb.a{background:var(--dt);border:1px solid var(--dl);color:var(--dk)}
+.tb.b{background:linear-gradient(135deg,var(--bm),var(--bd2));color:#fff}.tb.b .l{opacity:.72}
+.qt{border-radius:12px;padding:20px 25px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--dm),var(--dd));color:#fff}
+.qt .l{font:700 9px Inter;letter-spacing:.13em;text-transform:uppercase;opacity:.72;margin-bottom:5px}.qt .v{font:800 27px var(--hf,'Plus Jakarta Sans')}.qt .v2{font:800 16px var(--hf,'Plus Jakarta Sans');text-align:right}
+.ps{display:flex;justify-content:flex-end;gap:38px;padding:11px 12px 0;text-align:right}.ps small{display:block;font:600 9px Inter;letter-spacing:.09em;text-transform:uppercase;color:#aaa}.ps b{font:700 14px var(--hf,'Plus Jakarta Sans')}
+.bank{background:var(--dt);border:1px solid var(--dl);border-radius:12px;padding:16px 20px;margin-bottom:22px}
+.bank .dsh{margin-bottom:10px}.bg{display:grid;grid-template-columns:repeat(3,1fr)}.bg div{padding:0 14px;border-right:1px solid rgba(0,0,0,.07)}.bg div:first-child{padding-left:0}.bg div:last-child{border:0}
+.bg small{display:block;font:600 9px Inter;letter-spacing:.05em;text-transform:uppercase;color:#aaa;margin-bottom:3px}.bg b{font-size:12px}
+.note{border-left:3px solid var(--dm);background:var(--dt);border-radius:0 10px 10px 0;padding:12px 17px;font-size:11px;color:#555;line-height:1.75;margin-bottom:22px;white-space:pre-line}
+.note b{display:block;color:var(--dk);margin-bottom:3px}
+.sig{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:8px}.sig div{border-top:1.5px solid var(--dl);padding-top:8px;padding-bottom:0;font:600 9px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--dk);margin-top:44px}
+.df{padding:17px 40px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--dl);gap:20px}
+.df b{font:800 12.5px var(--hf,'Plus Jakarta Sans');display:block;margin-bottom:4px}.df small{font-size:10px;color:#888;line-height:1.75;display:block}
+.df .r{text-align:right}.df .r b{color:var(--dk);font-size:13px}.df .r small:last-child{font-size:9px;color:#bbb}
+.seal{position:absolute;top:47%;right:40px;transform:translateY(-50%) rotate(-14deg);pointer-events:none;z-index:5;opacity:.9}
+@media(max-width:900px){.app{grid-template-columns:1fr}.view{display:none}body.pv .edit{display:none}body.pv .view{display:block}.pvbtn{display:inline-flex}.saved,.docno{display:none}.top{gap:8px;padding:0 10px}.brand span{display:none}}
+@media print{
+ *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ @page{size:A4;margin:0}
+ html,body{height:auto;overflow:visible;background:#fff}
+ .top,.edit,.zoom,.toast,.load,#libv{display:none!important}
+ .app{display:block;height:auto}.view{display:block!important;padding:0;overflow:visible}
+ #sizer{width:210mm!important;height:auto!important;margin:0}#scaler{transform:none!important;width:210mm}
+ #doc{width:210mm;min-height:297mm;box-shadow:none}
+}
+/* ===== v21 layout: header never overflows, document grows with content ===== */
+body{display:flex;flex-direction:column}
+.top{height:auto;min-height:60px;flex-shrink:0;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px 16px;padding:10px 20px}
+.tl,.tr{display:flex;align-items:center;gap:10px;min-width:0}
+.tl{gap:12px}.tr{margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.brand{margin-right:4px;white-space:nowrap}
+.seg{height:36px;align-items:center;flex-shrink:0}
+.seg button{height:30px;padding:0 14px;display:inline-flex;align-items:center;white-space:nowrap}
+.seg.sm button{padding:0 11px}
+.btn{height:36px;padding:0 14px;white-space:nowrap;flex-shrink:0}
+.dirb{max-width:170px}
+.vsep{width:1px;height:22px;background:var(--bd)}
+.menu{position:relative}
+.menu .pop{position:absolute;right:0;top:calc(100% + 8px);min-width:220px;background:#fff;border:1px solid var(--bd);border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.16);padding:6px;display:none;z-index:60}
+.menu.open .pop{display:grid;gap:1px}
+.mi{display:flex;align-items:center;gap:11px;width:100%;height:auto;border:0;background:none;padding:10px 12px;border-radius:8px;font:600 12.5px Inter;color:var(--ink);text-align:left}
+.mi:hover{background:#f3f4f8}
+.mi svg{width:16px;height:16px;stroke:var(--mut);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.msep{height:1px;background:var(--bd);margin:5px 4px}
+.app{height:auto;flex:1;min-height:0;grid-template-rows:minmax(0,1fr)}
+#libv{height:auto;flex:1;min-height:0}
+@media(max-width:1650px){.saved{display:none}}
+@media(max-width:1500px){.docno{display:none}}
+@media(max-width:1180px){.brand span{display:none}}
+@media(max-width:900px){.top{padding:8px 10px;gap:8px}.tl,.tr{width:100%;justify-content:space-between}.tl{flex-wrap:wrap}.tr{flex-wrap:wrap;margin-left:0}.dirb{max-width:130px}.vsep{display:none}}
+@media print{body{display:block!important}.top{display:none!important}tr,.pk,.note,.bank,.tot,.qt,.sig,.sr{break-inside:avoid}}
+</style></head>
+<body data-t="invoice">
+<header class="top">
+ <div class="tl">
+  <div class="brand"><div class="mark"></div><span>Billing Studio</span></div>
+  <div class="seg" id="viewSeg"><button data-mode="ed" class="on">Editor</button><button data-mode="lib">Library<span id="libCnt"></span></button></div>
+  <div class="seg ed" id="typeSeg"><button data-type="invoice" class="on">Invoice</button><button data-type="quotation">Quotation</button></div>
+  <span class="docno ed" id="docNo"></span>
+ </div>
+ <div class="tr">
+  <span class="saved ed" id="saved">Draft saves automatically</span>
+  <div class="seg sm" id="srcSeg" title="Where PDFs are saved"><button data-src="local" class="on">Computer</button><button data-src="drive">Google Drive</button></div>
+  <button class="btn dirb" id="dirBtn" title="Folder where PDFs are saved"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span id="dirTxt">Choose folder</span></button>
+  <span class="vsep ed"></span>
+  <button class="btn pvbtn ed" id="pvBtn">Preview</button>
+  <div class="menu ed" id="moreMenu">
+   <button class="btn" id="moreBtn" aria-haspopup="true" aria-expanded="false" title="More actions"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>More</button>
+   <div class="pop" role="menu">
+    <button class="mi" id="newBtn" title="Start a fresh document"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New document</button>
+    <button class="mi" id="xlsBtn"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg>Export to Excel</button>
+    <button class="mi" id="prBtn"><svg viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>Print</button>
+    <div class="msep"></div>
+    <button class="mi" id="rndBtn" title="Fill every field with random test data"><svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Fill with test data</button>
+   </div>
+  </div>
+  <button class="btn pri ed" id="pdfBtn" title="Saves to your chosen folder or Google Drive (downloads if none is set up)"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16"/></svg>Save PDF</button>
+ </div>
+</header>
+<main class="app">
+<aside class="edit" id="edit">
+<details open><summary>Document</summary><div class="sec">
+ <div class="g">
+  <label class="f">Company<select data-p="company"><option value="radco">The RAD Company</option><option value="zenetic">Zenetic Studio</option><option value="custom">Custom / other</option></select></label>
+  <label class="f">Currency<input data-p="cur" placeholder="LKR"></label>
+  <label class="f">Sequence no.<input data-p="seq" placeholder="001"></label>
+  <label class="f"><span id="dateLbl">Invoice date</span><input type="date" data-p="date"></label>
+  <label class="f q s2">Valid until<input type="date" data-p="valid"></label>
+ </div></div></details>
+<details open><summary>Client</summary><div class="sec"><div class="g">
+ <label class="f">Client name<input data-p="client.name" placeholder="Mr. John Doe"></label>
+ <label class="f">Phone<input data-p="client.phone" placeholder="+94 77 000 0000"></label>
+ <label class="f s2">Email<input type="email" data-p="client.email" placeholder="client@example.com"></label>
+ <label class="f s2">Address<input data-p="client.addr" placeholder="City, province"></label></div></div></details>
+<details open><summary>Event &amp; schedule</summary><div class="sec">
+ <div class="g">
+  <label class="f">Service type<select data-p="svc" id="svc"></select></label>
+  <label class="f">Venue<input data-p="venue" placeholder="Hotel name, city"></label>
+  <label class="f s2" id="svcCW" style="display:none">Custom service name<input data-p="svcCustom" placeholder="Type the service name"></label>
+ </div>
+ <div class="h">Schedule<span>One line per ceremony or day</span></div>
+ <div id="l-days"></div><button class="add" data-add="days">+ Add ceremony / day</button></div></details>
+<details open><summary>Pricing</summary><div class="sec">
+ <div class="g"><label class="f s2">Package name<input data-p="pkg.name" placeholder="Full day wedding photography"></label>
+ <label class="f">Includes<input data-p="pkg.inc" placeholder="40 page album, 2 photographers"></label>
+ <label class="f">Base amount<input type="number" data-p="pkg.base" placeholder="150000"></label></div>
+ <div class="h">Add-ons</div><div id="l-addons"></div><button class="add" data-add="addons">+ Add item</button>
+ <div class="h">Discounts</div><div id="l-discs"></div><button class="add" data-add="discs">+ Add discount</button>
+ <div class="sum" id="sum"></div></div></details>
+<details class="i" open><summary>Payments</summary><div class="sec">
+ <div class="g"><label class="f">Advance received<input type="number" data-p="adv" placeholder="0"></label>
+ <label class="f">Advance date<input type="date" data-p="advDate"></label></div>
+ <div class="h">Instalments</div><div id="l-insts"></div><button class="add" data-add="insts">+ Add instalment</button>
+ <label class="sw"><span><b>Mark as fully paid</b><small>Adds the PAID seal and clears the balance</small></span><input type="checkbox" data-p="paid"></label>
+ <label class="f" id="paidW">Payment received on<input type="date" data-p="paidDate"></label></div></details>
+<details class="i"><summary>Bank details</summary><div class="sec"><div class="g">
+ <label class="f">Bank<input data-p="bank.name"></label><label class="f">Account no.<input data-p="bank.acc"></label>
+ <label class="f s2">Account name<input data-p="bank.holder"></label></div>
+ <label class="sw"><span><b>Show on invoice</b><small>Hidden automatically once fully paid</small></span><input type="checkbox" data-p="show.bank"></label></div></details>
+<details class="q" open><summary>Terms &amp; advance</summary><div class="sec">
+ <label class="f">Advance required (%)<input type="number" data-p="advPct" min="0" max="100"></label>
+ <label class="f">Terms &amp; conditions<textarea data-p="terms" rows="5" placeholder="• 50% advance confirms the booking&#10;• Final payment due 7 days before the event"></textarea></label>
+ <label class="sw"><span><b>Signature lines</b><small>Client and authorised signatory</small></span><input type="checkbox" data-p="show.sig"></label></div></details>
+<details><summary>Notes</summary><div class="sec"><textarea data-p="notes" placeholder="Anything else the client should know"></textarea></div></details>
+<details><summary>Business details</summary><div class="sec"><div class="g">
+ <label class="f">Business name<input data-p="ag.name"></label><label class="f">Tagline<input data-p="ag.tag"></label>
+ <label class="f">Email<input data-p="ag.email"></label><label class="f">Phone<input data-p="ag.phone"></label>
+ <label class="f s2">Address<em id="rstAddr">Reset to default</em><input data-p="ag.addr"></label></div>
+ <div class="logo"><img id="logoImg" alt="" hidden><span id="logoTxt">Transparent PNG works best</span><button class="btn" id="logoBtn">Upload logo</button><button class="btn" id="logoRm" hidden>Remove</button></div>
+ <input type="file" id="logoIn" accept="image/*" hidden></div></details>
+<details open><summary>Design</summary><div class="sec">
+ <div class="cp"><label class="wheel"><input type="color" data-p="brand"></label>
+  <label class="f" style="flex:1">Brand colour<input id="hex" maxlength="7" placeholder="#7C3AED"></label></div>
+ <div class="sws" id="sws"></div>
+ <div class="g"><label class="f">Typeface<select data-p="font"><option value="plus">Geometric (Plus Jakarta)</option><option value="inter">Neutral (Inter)</option><option value="serif">Classic (Playfair)</option></select></label>
+ <label class="f">Header style<select data-p="head"><option value="gradient">Gradient</option><option value="solid">Solid</option><option value="light">Soft tint</option><option value="minimal">Minimal</option></select></label></div>
+ <label class="sw"><span><b>Show event schedule</b><small>Hide it for non-event work</small></span><input type="checkbox" data-p="show.sched"></label></div></details>
+</aside>
+<section class="view" id="view"><div id="sizer"><div id="scaler"><div id="doc"></div></div></div>
+ <div class="zoom"><button id="zo" aria-label="Zoom out">−</button><span id="zl">Fit</span><button id="zi" aria-label="Zoom in">+</button><button id="zf">Fit</button></div></section>
+</main>
+<section id="libv"><div class="lw">
+ <div class="lh"><div><h2>Library</h2><small id="libSub">No folder selected</small></div><span class="sp"></span>
+  <button class="btn" id="impBtn">Open a PDF…</button><button class="btn" id="upBtn" hidden>Upload PDFs to Drive</button><button class="btn" id="rescanBtn" hidden>Refresh</button><button class="btn" id="gSetBtn" hidden>Client ID</button><button class="btn" id="gOffBtn" hidden>Disconnect</button><button class="btn pri" id="dirBtn2">Choose folder</button></div>
+ <div class="empty" id="libEmpty"></div>
+ <div id="libMain" hidden class="lw" style="max-width:none">
+  <div class="stats" id="stats"></div>
+  <div class="flt">
+   <label class="f qw">Search<input id="q" placeholder="Client, document no., event, venue, phone, amount…" autocomplete="off"></label>
+   <button class="btn" id="fClr" style="justify-content:center">Clear filters</button>
+   <label class="f">Type<select id="fType"><option value="all">All</option><option value="invoice">Invoices</option><option value="quotation">Quotations</option></select></label>
+   <label class="f">Status<select id="fStat"><option value="all">All</option><option>Paid</option><option>Partial</option><option>Unpaid</option><option>Quotation</option></select></label>
+   <label class="f">Company<select id="fCo"><option value="all">All companies</option></select></label>
+   <label class="f">From<input type="date" id="fFrom"></label>
+   <label class="f">To<input type="date" id="fTo"></label>
+   <label class="f">Sort by<select id="fSort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="high">Highest amount</option><option value="low">Lowest amount</option><option value="client">Client A–Z</option><option value="doc">Document no.</option></select></label>
+  </div>
+  <div class="lt"><div class="lr hd"><div>Document</div><div>Type</div><div>Client</div><div>Event</div><div>Date</div><div style="text-align:right">Total</div><div>Status</div><div></div></div><div id="rows"></div></div>
+ </div>
+</div></section>
+<input type="file" id="impIn" accept="application/pdf,.pdf" hidden><input type="file" id="upIn" accept="application/pdf,.pdf" multiple hidden><input type="file" id="dirIn" webkitdirectory hidden>
+<div class="toast" id="toast"></div><div class="load" id="load">Rendering…</div>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const e=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ADDR='No. 127/39, Varnakulasingham Road, Kallady, Batticaloa, Sri Lanka',OLDADDR='No. 127/39, Varnakulasingham Road, Kallady, Batticaloa',KEY='rad_billing_v17';
+const CO={radco:{name:'The RAD Company',tag:'Creative Production House',email:'creativeradco@gmail.com',brand:'#DC2626'},zenetic:{name:'Zenetic Studio',tag:'',email:'zeneticstudio@proton.me',brand:'#00A378'}};
+const SVC={'Photography':['Wedding Photography','Engagement / Pre-Shoot','Homecoming Coverage','Portrait / Studio Session','Product Photography','Fashion / Editorial Shoot','Real Estate / Architecture','Food Photography'],'Videography & Film':['Wedding Cinematography','Event Video Coverage','Corporate Video Production','Commercial / TVC Production','Music Video Production','Documentary / Short Film','Drone / Aerial Coverage','Live Streaming Service'],'Post-Production':['Video Editing','Photo Retouching','Colour Grading','Sound Design / Mixing','Subtitling & Captioning'],'Animation & VFX':['2D Animation','3D Animation','Motion Graphics','VFX / Compositing','Explainer Video','Logo Animation / Sting','CGI / Product Visualisation'],'Design & Branding':['Graphic Design','Logo & Brand Identity','Social Media Creatives','Print & Packaging Design','Web / UI Design'],'Packages':['Event Promotional Package','Full Wedding Package','Corporate Branding Package','Social Media Content Package','Monthly Retainer Package'],'Other':['Equipment Rental','Crew / Manpower Hire','__custom__']};
+const SWATCH=['#7C3AED','#DC2626','#0EA5E9','#16A34A','#92400E','#DB2777','#1E3A8A','#EA580C','#0D9488','#CA8A04','#4F46E5','#1a1a1a'];
+const FONTS={plus:"'Plus Jakarta Sans'",inter:"Inter",serif:"'Playfair Display',serif"};
+const today=()=>new Date().toISOString().slice(0,10);
+const defaults=()=>({type:'invoice',company:'zenetic',cur:'LKR',seq:'001',date:today(),valid:'',ag:{name:CO.zenetic.name,tag:CO.zenetic.tag,email:CO.zenetic.email,phone:'0719294494, 0754294494',addr:ADDR},
+ client:{name:'',phone:'',email:'',addr:''},svc:'Wedding Photography',svcCustom:'',venue:'',days:[],pkg:{name:'',inc:'',base:''},addons:[],discs:[],adv:'',advDate:'',insts:[],paid:false,paidDate:today(),
+ bank:{name:'Commercial Bank',acc:'8105049080',holder:'K. Nisharigan'},advPct:50,terms:'',notes:'',brand:CO.zenetic.brand,font:'plus',head:'gradient',show:{bank:true,sig:true,sched:true},logo:'',logoW:''});
+let S=defaults();
+try{const j=JSON.parse(localStorage.getItem(KEY));if(j)S=Object.assign(defaults(),j,{ag:{...defaults().ag,...j.ag},show:{...defaults().show,...j.show}})}catch(_){}
+if(S.company==='rad'){S.company='radco';Object.assign(S.ag,{name:CO.radco.name,tag:CO.radco.tag});S.brand=CO.radco.brand}
+if(S.ag.name==='Zenetic Studios')S.ag.name='Zenetic Studio';
+if(S.ag.addr===OLDADDR)S.ag.addr=ADDR;
+if(S.company==='radco'&&S.brand.toLowerCase()==='#1e3a8a')S.brand=CO.radco.brand;
+if(S.company==='zenetic'){if(S.ag.tag==='Animation · VFX · Motion Design')S.ag.tag='';if(S.ag.email==='creativeradco@gmail.com')S.ag.email=CO.zenetic.email}
+if(S.company==='zenetic'&&S.brand.toLowerCase()==='#0d9488')S.brand='#00A378';
+const get=(o,p)=>p.split('.').reduce((a,k)=>a?.[k],o);
+const set=(o,p,v)=>{const k=p.split('.'),l=k.pop();k.reduce((a,x)=>a[x],o)[l]=v};
+/* colour */
+function h2l(hex){hex=hex.replace('#','');const r=parseInt(hex.slice(0,2),16)/255,g=parseInt(hex.slice(2,4),16)/255,b=parseInt(hex.slice(4,6),16)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0,s=0;const l=(mx+mn)/2;if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60}return{h,s:s*100,l:l*100}}
+function l2h(h,s,l){s=Math.max(0,Math.min(100,s))/100;l=Math.max(0,Math.min(100,l))/100;const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>Math.round(255*(l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)))));return'#'+[f(0),f(8),f(4)].map(v=>v.toString(16).padStart(2,'0')).join('')}
+const hs=(h,s,l)=>`hsl(${Math.round(h)},${Math.round(s)}%,${l}%)`;
+function theme(hex){const{h,s,l}=h2l(hex),n=s<8,sat=n?0:s;return{m:l2h(h,sat,n?Math.min(l,18):Math.min(Math.max(l,32),52)),d:l2h(h,n?0:Math.min(sat+8,90),n?10:Math.max(l-24,18)),k:l2h(h,sat,n?30:Math.max(l-8,30)),t:hs(h,n?0:Math.min(sat,60),97),tm:hs(h,n?0:Math.min(sat,58),94),l:hs(h,n?0:Math.min(sat,55),88)}}
+/* money & dates */
+const money=(n,c=S.cur)=>{c=(c||'').trim();const x=Math.round(+n||0).toLocaleString('en-LK');return c.toUpperCase()==='LKR'||!c?x+'/=':c+' '+x};
+const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const fd=d=>{if(!d)return'—';const[y,m,x]=d.split('-');return`${MN[m-1]} ${+x}, ${y}`};
+const svcName=()=>S.svc==='__custom__'?S.svcCustom.trim():S.svc;
+const docNum=()=>{const[y,m,d]=(S.date||today()).split('-');return`${S.type==='quotation'?'QUO':'INV'}-${y}-${m}-${d}-${String(S.seq||'001').padStart(3,'0')}`};
+function calc(){const sum=a=>a.reduce((t,x)=>t+(+x.a||0),0),base=+S.pkg.base||0,add=sum(S.addons),dis=sum(S.discs),sub=base+add,total=sub-dis,adv=+S.adv||0,inst=sum(S.insts),paid=S.paid?total:adv+inst;
+ return{base,add,dis,sub,total,adv,inst,paid,bal:S.paid?0:total-adv-inst,advAmt:Math.round(total*(+S.advPct||0)/100)}}
+/* list editors */
+const LISTS={days:{c:'1.5fr 1fr',f:[['n','Ceremony / day','text'],['d','','date']]},addons:{c:'1.5fr 1fr',f:[['d','Item','text'],['a','Amount','number']]},discs:{c:'1.5fr 1fr',f:[['d','Discount','text'],['a','Amount','number']]},insts:{c:'1.2fr .9fr 1fr',f:[['l','Label','text'],['a','Amount','number'],['d','','date']]}};
+function lists(){for(const k in LISTS){const L=LISTS[k];$('#l-'+k).innerHTML=S[k].map((r,i)=>`<div class="row" style="grid-template-columns:${L.c} 30px">${L.f.map(([f,ph,t])=>`<input type="${t}" data-l="${k}" data-i="${i}" data-f="${f}" placeholder="${ph}" value="${e(r[f])}">`).join('')}<button class="rm" data-rm="${k}" data-i="${i}" aria-label="Remove">×</button></div>`).join('')}}
+/* form sync */
+function sync(){$$('[data-p]').forEach(el=>{const v=get(S,el.dataset.p);if(el===document.activeElement)return;if(el.type==='checkbox')el.checked=!!v;else el.value=v??''});
+ const hx=$('#hex');if(document.activeElement!==hx)hx.value=S.brand.toUpperCase();
+ $('#svcCW').style.display=S.svc==='__custom__'?'grid':'none';$('#paidW').style.display=S.paid?'grid':'none';
+ $$('#typeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.type===S.type));document.body.dataset.t=S.type;
+ $('#dateLbl').textContent=S.type==='invoice'?'Invoice date':'Quotation date';
+ $$('#sws i').forEach(i=>i.classList.toggle('on',i.dataset.c.toLowerCase()===S.brand.toLowerCase()));
+ const T=theme(S.brand);document.documentElement.style.setProperty('--m',T.m);
+ if(S.logo){$('#logoImg').src=S.logo;$('#logoImg').hidden=false;$('#logoTxt').hidden=true;$('#logoRm').hidden=false;$('#logoBtn').textContent='Replace'}else{$('#logoImg').hidden=true;$('#logoTxt').hidden=false;$('#logoRm').hidden=true;$('#logoBtn').textContent='Upload logo'}}
+/* document */
+function seal(T,ag){const c=T.d,dt=S.paidDate?fd(S.paidDate).toUpperCase():'';return`<div class="seal"><svg viewBox="0 0 200 200" width="150" height="150"><defs><path id="ta" d="M 100,100 m -74,0 a 74,74 0 0 1 148,0" transform="rotate(180 100 100)"/><path id="ba" d="M 100,100 m -74,0 a 74,74 0 0 0 148,0" transform="rotate(180 100 100)"/></defs><circle cx="100" cy="100" r="92" fill="none" stroke="${c}" stroke-width="5"/><circle cx="100" cy="100" r="82" fill="none" stroke="${c}" stroke-width="1.6" opacity=".8"/><circle cx="100" cy="100" r="60" fill="none" stroke="${c}" stroke-width="1.2" opacity=".5" stroke-dasharray="2.5 3.5"/><text font-family="Inter" font-size="11.5" font-weight="700" letter-spacing="2.6" fill="${c}"><textPath href="#ta" startOffset="50%" text-anchor="middle">${e(ag.toUpperCase().slice(0,26))}</textPath></text><text font-family="Inter" font-size="9.5" font-weight="700" letter-spacing="2" fill="${c}"><textPath href="#ba" startOffset="50%" text-anchor="middle">★&#160;&#160;${dt}&#160;&#160;★</textPath></text><line x1="42" y1="82" x2="158" y2="82" stroke="${c}" stroke-width="1.4" opacity=".55"/><line x1="42" y1="122" x2="158" y2="122" stroke="${c}" stroke-width="1.4" opacity=".55"/><text x="100" y="109" text-anchor="middle" font-family="Plus Jakarta Sans" font-size="30" font-weight="900" letter-spacing="2.5" fill="${c}">PAID</text><text x="100" y="134" text-anchor="middle" font-family="Inter" font-size="8" font-weight="700" letter-spacing="2.4" fill="${c}">IN FULL</text></svg></div>`}
+function docHTML(){const T=theme(S.brand),C=calc(),inv=S.type==='invoice',a=S.ag,cl=S.client,H=S.head,light=H==='light'||H==='minimal';
+ const ini=(a.name||'RS').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2),lg=(light?S.logo:S.logoW||S.logo),
+ logo=lg?`<img src="${lg}" alt="">`:`<div class="ini">${e(ini)}</div>`;
+ const cn=cl.name?e(cl.name):'<span class="ph">Client name</span>',cl2=[cl.phone,cl.email,cl.addr].filter(Boolean).map(e).join(' · '),sv=svcName(),days=S.days.filter(d=>d.n||d.d);
+ const sec=(t,b)=>`<div class="ds"><div class="dsh">${t}</div>${b}</div>`;
+ const itemRows=S.addons.filter(x=>x.d||+x.a).map(x=>`<tr><td>${e(x.d)}</td><td>${money(x.a)}</td></tr>`).join('')+S.discs.filter(x=>+x.a).map(x=>`<tr><td class="dc">${e(x.d||'Discount')}</td><td class="dc">(${money(x.a)})</td></tr>`).join('');
+ const g='color:#16a34a;',pay=[];
+ if(C.adv>0)pay.push(['Advance payment',S.advDate,C.adv]);S.insts.filter(x=>x.l||+x.a).forEach(x=>pay.push([x.l,x.d,x.a]));
+ const fin=S.paid?C.total-C.adv-C.inst:0;
+ const payRows=pay.map(p=>`<tr><td>${e(p[0])}</td><td style="text-align:left">${fd(p[1])}</td><td>${money(p[2])}</td></tr>`).join('')+(S.paid&&fin>0?`<tr><td style="${g}font-weight:600">Final payment</td><td style="text-align:left;${g}">${fd(S.paidDate)}</td><td style="${g}">${money(fin)}</td></tr>`:'');
+ const terms=S.terms.trim()?`<div class="note"><b>Terms &amp; conditions</b>${e(S.terms)}</div>`:'';
+ const notes=S.notes.trim()?`<div class="note" style="font-style:italic">${e(S.notes)}</div>`:'';
+ const balBg=S.paid?'#16a34a':T.m,sh=(h,p)=>{const n=parseInt(h.slice(1),16),f=v=>Math.max(0,Math.min(255,v+Math.round(255*p)));return'#'+[n>>16,(n>>8)&255,n&255].map(f).map(v=>v.toString(16).padStart(2,'0')).join('')};
+ const lines=[a.tag,a.email,a.phone,a.addr].filter(Boolean).map(e).join(' &nbsp;·&nbsp; ');
+ return`<div style="display:contents;--dm:${T.m};--dd:${T.d};--dk:${T.k};--dt:${T.t};--dtm:${T.tm};--dl:${T.l};--bm:${balBg};--bd2:${sh(balBg,-.14)};--hf:${FONTS[S.font]}">
+ ${inv&&S.paid?seal(T,a.name):''}
+ <div class="dh ${H}"><div>${logo}</div><div class="dr"><div class="badge">${inv?(S.paid?'Paid invoice':'Invoice'):'Quotation'}</div><div class="dn">${docNum()}</div><div class="dd2">Issued&nbsp; ${fd(S.date)}</div></div></div>
+ <div class="chips"><div class="chip"><div class="cl">${inv?'Billed to':'Prepared for'}</div><div class="cv">${cn}</div>${cl2?`<div class="cs">${cl2}</div>`:''}</div>
+ ${sv||S.venue?`<div class="chip"><div class="cl">Event</div><div class="cv">${e(sv)||'—'}</div>${S.venue?`<div class="cs">${e(S.venue)}</div>`:''}</div>`:''}
+ ${!inv&&S.valid?`<div class="chip"><div class="cl">Valid until</div><div class="cv">${fd(S.valid)}</div><div class="cs">Prices may vary after this date</div></div>`:''}</div>
+ <div class="db">
+ ${S.show.sched&&days.length?sec('Event schedule',`<div class="sch">${days.map((d,i)=>`<div class="sr"><i style="opacity:${Math.max(1-i*.12,.45)}"></i><b>${e(d.n||'Day '+(i+1))}</b><span>${d.d?fd(d.d):'Date to be confirmed'}</span></div>`).join('')}</div>`):''}
+ ${S.pkg.name?sec('Package details',`<div class="pk"><div><b>${e(S.pkg.name)}</b>${S.pkg.inc?`<small>${e(S.pkg.inc)}</small>`:''}</div><div class="am">${money(C.base)}</div></div>`):''}
+ ${itemRows?sec('Itemised breakdown',`<table><thead><tr><th>Description</th><th>Amount</th></tr></thead><tbody>${itemRows}</tbody></table><div class="sub"><span>Subtotal</span><b>${money(C.sub)}</b></div>`):''}
+ ${inv?`<div class="tot"><div class="tb a"><div class="l">Total payable</div><div class="v">${money(C.total)}</div></div><div class="tb b"><div class="l">${S.paid?'Payment complete':'Remaining balance'}</div><div class="v" style="${S.paid?'font-size:16px;padding-top:6px':''}">${S.paid?'PAID IN FULL':money(C.bal)}</div></div></div>`
+ :`<div class="qt"><div><div class="l">Estimated total</div><div class="v">${money(C.total)}</div></div>${+S.advPct>0?`<div><div class="l" style="text-align:right">Advance required (${+S.advPct}%)</div><div class="v2">${money(C.advAmt)}</div></div>`:''}</div>`}
+ ${inv&&payRows?sec('Payment status',`<table><thead><tr><th>Description</th><th style="text-align:left">Date</th><th>Amount</th></tr></thead><tbody>${payRows}</tbody></table><div class="ps"><div><small>Total payable</small><b>${money(C.total)}</b></div><div><small>Amount paid</small><b style="${g}">${money(C.paid)}</b></div></div>`):''}
+ ${inv&&!S.paid&&S.show.bank&&(S.bank.name||S.bank.acc||S.bank.holder)?`<div class="bank"><div class="dsh">Payment information</div><div class="bg">${[['Bank',S.bank.name],['Account no.',S.bank.acc],['Account name',S.bank.holder]].filter(x=>x[1]).map(x=>`<div><small>${x[0]}</small><b>${e(x[1])}</b></div>`).join('')}</div></div>`:''}
+ ${inv?'':terms}${notes}
+ ${!inv&&S.show.sig?`<div class="sig"><div>Client signature &amp; date</div><div>Authorised by — ${e(a.name)}</div></div>`:''}
+ </div>
+ <div class="df" style="border-top-color:${T.l}"><div><b>${e(a.name)}</b><small>${lines}</small></div><div class="r"><b>Thank you!</b><small>${inv?'We appreciate your business.':'We look forward to working with you.'}</small><small>${inv?'Computer-generated · No signature required.':'Computer-generated quotation · Prices subject to change after validity date.'}</small></div></div></div>`}
+/* render */
+let zoom=0;
+function fit(){const v=$('#view'),sc=zoom||Math.min(1,(v.clientWidth-40)/794),d=$('#doc');$('#scaler').style.transform=`scale(${sc})`;$('#sizer').style.width=794*sc+'px';$('#sizer').style.height=d.offsetHeight*sc+'px';$('#zl').textContent=zoom?Math.round(zoom*100)+'%':'Fit'}
+function render(){const C=calc();$('#doc').innerHTML=docHTML();$('#docNo').textContent=docNum();
+ $('#sum').innerHTML=`<div><span>Base</span><span>${money(C.base)}</span></div><div><span>Add-ons</span><span>${money(C.add)}</span></div>${C.dis?`<div style="color:#d97706"><span>Discounts</span><span>− ${money(C.dis)}</span></div>`:''}<div class="t"><span>Total</span><span>${money(C.total)}</span></div>`;
+ fit()}
+let st,dirty=false,loadedFrom=null;function save(){try{localStorage.setItem(KEY,JSON.stringify(S));$('#saved').textContent='Saved just now'}catch(_){$('#saved').textContent='Could not save draft (logo too large?)'}}
+const update=()=>{sync();render();clearTimeout(st);st=setTimeout(save,300)};
+function toast(m,c){const t=$('#toast');t.textContent=m;t.style.background=c||'#14161c';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200)}
+/* events */
+document.addEventListener('input',ev=>{const t=ev.target;
+ if(t.dataset.p){set(S,t.dataset.p,t.type==='checkbox'?t.checked:t.value);
+  if(t.dataset.p==='company'&&CO[t.value]){const c=CO[t.value];Object.assign(S.ag,{name:c.name,tag:c.tag,email:c.email,addr:ADDR});S.brand=c.brand}}
+ else if(t.dataset.l)S[t.dataset.l][+t.dataset.i][t.dataset.f]=t.value;
+ else if(t.id==='hex'){let v=t.value.trim();if(v[0]!=='#')v='#'+v;if(/^#[0-9a-f]{6}$/i.test(v))S.brand=v;else return}
+ else return;
+ if(t.dataset.p==='company')document.activeElement.blur();update()});
+document.addEventListener('click',ev=>{const t=ev.target.closest('button,i,em');if(!t)return;
+ if(t.dataset.add){S[t.dataset.add].push({});lists();update();const r=$$('#l-'+t.dataset.add+' input');r[r.length-(LISTS[t.dataset.add].f.length)]?.focus()}
+ else if(t.dataset.rm){S[t.dataset.rm].splice(+t.dataset.i,1);lists();update()}
+ else if(t.dataset.type){S.type=t.dataset.type;update()}
+ else if(t.dataset.c){S.brand=t.dataset.c;update()}
+ else if(t.id==='rstAddr'){S.ag.addr=ADDR;update()}
+ else if(t.dataset.mode)setMode(t.dataset.mode)
+ else if(t.dataset.src)setSrc(t.dataset.src)
+ else if(t.dataset.act==='choose'||t.dataset.act==='gconn')topAction()
+ else if(t.dataset.act==='grant')grant()
+ else if(t.dataset.act==='savecid')saveCid()
+ else if(t.dataset.lopen){const r=LIB.find(x=>x.id===t.dataset.lopen);if(r)editRec(r)}
+ else if(t.dataset.lview)viewPdf(t.dataset.lview)});
+$('#svc').innerHTML=Object.entries(SVC).map(([g,a])=>`<optgroup label="${g}">${a.map(x=>`<option value="${x}">${x==='__custom__'?'Custom / other…':x}</option>`).join('')}</optgroup>`).join('');
+$('#sws').innerHTML=SWATCH.map(c=>`<i data-c="${c}" style="background:${c}" title="${c}"></i>`).join('');
+/* logo */
+$('#logoBtn').onclick=()=>$('#logoIn').click();
+$('#logoRm').onclick=()=>{S.logo=S.logoW='';update()};
+$('#logoIn').onchange=ev=>{const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=x=>{const img=new Image();img.onload=()=>{const k=Math.min(1,600/img.width),cv=document.createElement('canvas');cv.width=img.width*k;cv.height=img.height*k;const cx=cv.getContext('2d');cx.drawImage(img,0,0,cv.width,cv.height);S.logo=cv.toDataURL('image/png');const d=cx.getImageData(0,0,cv.width,cv.height);for(let i=0;i<d.data.length;i+=4)if(d.data[i+3]>10){d.data[i]=d.data[i+1]=d.data[i+2]=255}cx.putImageData(d,0,0);S.logoW=cv.toDataURL('image/png');update()};img.src=x.target.result};r.readAsDataURL(f);ev.target.value=''};
+/* random test data */
+const pick=a=>a[Math.floor(Math.random()*a.length)],ri=(a,b,s=500)=>Math.round((a+Math.random()*(b-a))/s)*s;
+const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+function randomize(){
+ const co=pick(Object.keys(CO)),c=CO[co],date=addDays(today(),-ri(0,30,1)),ev=addDays(date,ri(10,60,1));
+ const svcs=Object.values(SVC).flat().filter(x=>x!=='__custom__'),svc=pick(svcs);
+ const pk=[['Full Day Coverage','2 photographers, 1 videographer, edited gallery'],['Premium Package','40 page album, highlight film, online gallery'],['Signature Collection','Cinematic film, drone shots, 300+ edited photos'],['Essentials Package','1 photographer, 150 edited photos, USB delivery'],['Brand Launch Kit','Logo animation, 3 social reels, colour grade']];
+ const p=pick(pk),base=ri(60000,350000),ceremonies=['Mehandi Ceremony','Poruwa Ceremony','Wedding Day','Homecoming','Engagement','Pre-Shoot','Reception','Launch Event'];
+ const addN=ri(0,3,1),discN=ri(0,2,1),add=['Extra Album Sheets','Drone Coverage','Same-Day Edit','Extra Hour of Coverage','Framed Prints','Highlight Reel'],dis=['Early Bird Discount','Loyalty Discount','Referral Discount'];
+ S.company=co;S.ag={name:c.name,tag:c.tag,email:c.email,phone:'0719294494, 0754294494',addr:ADDR};S.brand=c.brand;
+ S.seq=String(ri(1,120,1)).padStart(3,'0');S.date=date;S.valid=addDays(date,pick([14,21,30]));
+ S.client={name:pick(['Mr. Kasun Perera','Ms. Anjali Fernando','Mr. & Mrs. Rajan','Dr. Nimali Silva','Mr. Thevan Selvam','Ms. Sanduni Jayawardena','Mr. Arun Kumar']),phone:'+94 7'+ri(0,8,1)+' '+ri(100,999,1)+' '+ri(1000,9999,1),email:'client'+ri(1,99,1)+'@example.com',addr:pick(['Batticaloa','Colombo 07','Kandy','Jaffna','Galle','Trincomalee','Negombo'])+', Sri Lanka'};
+ S.svc=svc;S.svcCustom='';S.venue=pick(['Grand Hotel','Lagoon View Gardens','Sunrise Banquet Hall','Beach Resort','City Convention Centre'])+', '+pick(['Batticaloa','Colombo','Kandy','Galle']);
+ S.days=Array.from({length:ri(1,3,1)},(_,i)=>({n:pick(ceremonies),d:addDays(ev,i)}));
+ S.pkg={name:p[0],inc:p[1],base};
+ S.addons=Array.from({length:addN},(_,i)=>({d:add[(i+ri(0,2,1))%add.length],a:ri(5000,40000)}));
+ S.discs=Array.from({length:discN},(_,i)=>({d:dis[i],a:ri(2000,15000)}));
+ const C=calc();S.adv=ri(C.total*.25,C.total*.4,1000);S.advDate=addDays(date,ri(0,5,1));
+ S.insts=Math.random()<.6?[{l:'2nd Instalment',a:ri(C.total*.15,C.total*.25,1000),d:addDays(date,ri(10,25,1))}]:[];
+ S.paid=Math.random()<.3;S.paidDate=addDays(date,ri(25,40,1));S.advPct=pick([25,30,40,50]);
+ S.terms='• '+S.advPct+'% advance confirms the booking\n• Final payment due 7 days before the event\n• Cancellation within 30 days: advance is non-refundable\n• Edited deliverables within 30 working days';
+ S.notes=pick(['Thank you for choosing us. Please call with any changes.','Travel outside the district is charged separately.','Raw files are not included unless agreed in writing.','']);}
+/* new doc */
+$('#rndBtn').onclick=()=>{randomize();loadedFrom=null;lists();update();toast('Filled with random test data')};
+$('#newBtn').onclick=()=>{if(!confirm('Start a new document? Client, pricing and payment details will be cleared. Business and design settings are kept.'))return;const d=defaults();S={...S,seq:String((parseInt(S.seq)||0)+1).padStart(3,'0'),date:today(),valid:'',client:d.client,venue:'',days:[],pkg:d.pkg,addons:[],discs:[],adv:'',advDate:'',insts:[],paid:false,paidDate:today(),notes:'',svc:d.svc,svcCustom:''};loadedFrom=null;lists();update();dirty=false;toast('New document ready')};
+/* zoom */
+$('#zi').onclick=()=>{zoom=Math.min(1.5,(zoom||+(Math.min(1,($('#view').clientWidth-40)/794)).toFixed(2))+.1);fit()};
+$('#zo').onclick=()=>{zoom=Math.max(.3,(zoom||+(Math.min(1,($('#view').clientWidth-40)/794)).toFixed(2))-.1);fit()};
+$('#zf').onclick=()=>{zoom=0;fit()};addEventListener('resize',fit);
+$('#pvBtn').onclick=()=>{document.body.classList.toggle('pv');$('#pvBtn').textContent=document.body.classList.contains('pv')?'Edit':'Preview';fit()};
+$('#prBtn').onclick=()=>print();
+/* PDF build + save */
+const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))),dec=b=>JSON.parse(decodeURIComponent(escape(atob(b))));
+function payload(){const C=calc(),inv=S.type==='invoice',stt=!inv?'Quotation':(S.paid||(C.total>0&&C.bal<=0))?'Paid':C.paid>0?'Partial':'Unpaid',{logo,logoW,...state}=S;
+ return{v:1,sum:{doc:docNum(),type:S.type,date:S.date,valid:S.valid,client:S.client.name||'',phone:S.client.phone||'',email:S.client.email||'',event:svcName(),venue:S.venue||'',pkg:S.pkg.name||'',company:S.ag.name||'',cur:(S.cur||'LKR').trim()||'LKR',total:C.total,paid:inv?C.paid:0,bal:inv?C.bal:C.total,status:stt},state}}
+async function buildPDF(){const w=document.createElement('div');w.style.cssText='position:fixed;left:-9999px;top:0;width:794px';const c=$('#doc').cloneNode(true);c.style.boxShadow='none';w.appendChild(c);document.body.appendChild(w);
+ let cv;try{await document.fonts.ready;const hp=Math.max(1,c.offsetHeight),sc=Math.max(1,Math.min(2,Math.sqrt(16e6/(794*hp))));cv=await html2canvas(c,{scale:sc,useCORS:true,backgroundColor:'#fff',width:794,windowWidth:794})}finally{w.remove()}
+ /* one continuous page: A4 wide, at least A4 tall, and as long as the content needs */
+ const hmm=Math.max(297,Math.round(cv.height/cv.width*210*100)/100),pdf=new jspdf.jsPDF({unit:'mm',format:[210,hmm],orientation:'portrait'});
+ pdf.addImage(cv.toDataURL('image/jpeg',.95),'JPEG',0,0,210,hmm);
+ pdf.setProperties({title:docNum(),subject:(S.type==='invoice'?'Invoice':'Quotation')+' - '+(S.client.name||'').replace(/[^\x20-\x7e]/g,''),author:S.ag.name,creator:'Billing Studio',keywords:'BSDATA:'+enc(payload())});
+ return pdf.output('blob')}
+$('#pdfBtn').onclick=async()=>{const b=$('#pdfBtn'),name=docNum()+'.pdf',key=SRC+':'+name;let where='download',ex=null;
+ if(SRC==='drive'){
+  if(!CID()){setMode('lib');renderLib();toast('Add your Google Client ID first (one-time setup)','#d97706');return}
+  let ok=false;try{ok=(gConnected()&&gValid())?true:await gConnect()}catch(er){gErr(er)}
+  if(ok)where='drive';else toast('Not connected to Google Drive, so the PDF will be downloaded instead.','#d97706')}
+ else if(canWrite()){if(await perm(true))where='local';else toast('Folder access was not granted, so the PDF will be downloaded instead.','#d97706')}
+ if(where==='local'&&loadedFrom!==key){let exists=true;try{await DIR.getFileHandle(name)}catch(_){exists=false}if(exists&&!confirm(`"${name}" already exists in "${DIR.name}".\n\nReplace it with this version?`))return}
+ if(where==='drive'){try{ex=await gFind(name)}catch(er){gErr(er);return}
+  if(ex&&loadedFrom!==key&&!confirm(`"${name}" already exists in your Google Drive.\n\nReplace it with this version?`))return}
+ b.disabled=true;$('#load').classList.add('show');
+ try{const blob=await buildPDF();
+  if(where==='local'){const fh=await DIR.getFileHandle(name,{create:true}),w=await fh.createWritable();await w.write(blob);await w.close();loadedFrom=key;dirty=false;await indexOne(fh,name);toast(`Saved ${name} to “${DIR.name}”`)}
+  else if(where==='drive'){const f=await gPut(blob,name,toProps(payload().sum,!!ex),ex&&ex.id);loadedFrom=key;dirty=false;LIB=LIB.filter(r=>r.id!==f.id);LIB.push(gRec(f));renderLib();toast(`Saved ${name} to Google Drive`)}
+  else{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);dirty=false;toast('Downloaded '+name+' · Tip: choose a folder or connect Google Drive to keep all PDFs together')}
+ }catch(err){console.error(err);if(/^drive/.test(err.message||''))gErr(err);else toast('PDF failed. Use Print and choose Save as PDF.','#dc2626')}
+ $('#load').classList.remove('show');b.disabled=false};
+/* Excel */
+$('#xlsBtn').onclick=()=>{try{const C=calc(),inv=S.type==='invoice',n=docNum(),st=inv?(S.paid?'PAID IN FULL':'Balance: '+C.bal):'Quotation';
+ const r=[[S.ag.name+' — Document record'],[],['Type',S.type.toUpperCase()],['Doc no.',n],['Date',S.date],['Status',st],[],['CLIENT'],['Name',S.client.name],['Phone',S.client.phone],['Email',S.client.email],['Address',S.client.addr],[],['SERVICE'],['Type',svcName()],['Venue',S.venue]];
+ S.days.forEach((d,i)=>r.push(['Day '+(i+1)+': '+d.n,d.d]));r.push([],['PACKAGE'],['Name',S.pkg.name],['Includes',S.pkg.inc],['Base',C.base]);
+ if(S.addons.length){r.push(['Add-ons','Amount']);S.addons.forEach(x=>r.push([x.d,+x.a||0]))}if(S.discs.length){r.push(['Discounts','Amount']);S.discs.forEach(x=>r.push([x.d,-(+x.a||0)]))}
+ r.push([],['FINANCIALS'],['Subtotal',C.sub],['Total',C.total]);if(inv){r.push(['Advance',C.adv],['Advance date',S.advDate]);S.insts.forEach(x=>r.push([x.l,x.d,+x.a||0]));r.push(['Paid',C.paid],['Balance',C.bal])}
+ const wb=XLSX.utils.book_new(),w1=XLSX.utils.aoa_to_sheet(r);w1['!cols']=[{wch:26},{wch:36},{wch:16}];XLSX.utils.book_append_sheet(wb,w1,'Document details');
+ const hd=['Date','Doc no.','Type','Client','Phone','Event','Venue','Package','Total','Paid','Balance','Status','Client email'],row=[S.date,n,S.type.toUpperCase(),S.client.name,S.client.phone,svcName(),S.venue,S.pkg.name,C.total,inv?C.paid:0,inv?C.bal:C.total,st,S.client.email||''];
+ let log=[];try{log=JSON.parse(localStorage.getItem('rad_log'))||[]}catch(_){}log=log.filter(x=>x[1]!==n);log.push(row);try{localStorage.setItem('rad_log',JSON.stringify(log))}catch(_){}
+ const w2=XLSX.utils.aoa_to_sheet([hd,...log]);w2['!cols']=hd.map((_,i)=>({wch:[3,0,7,1].includes(i)?24:16}));XLSX.utils.book_append_sheet(wb,w2,'All records');
+ XLSX.writeFile(wb,n+'_log.xlsx');toast(`Saved ${n}_log.xlsx (${log.length} record${log.length>1?'s':''})`)}catch(err){console.error(err);toast('Excel export failed','#dc2626')}};
+/* ===== Library / storage (computer folder + Google Drive) ===== */
+const FSA=!!window.showDirectoryPicker;
+const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(_){return null}};
+/* Paste your Google OAuth Client ID here, or leave empty and paste it in the app (Library > Google Drive). */
+const GOOGLE_CLIENT_ID='';
+const SCOPE='https://www.googleapis.com/auth/drive.file',API='https://www.googleapis.com/drive/v3',FOLDER='Billing Studio';
+let SRC=ls('bs_src')==='drive'?'drive':'local',DIR=null,LIB=[],needPerm=false,scanning=false,gisP=null,GD={tok:'',exp:0,email:ls('bs_gemail')||'',folder:''};
+const CID=()=>GOOGLE_CLIENT_ID||ls('bs_cid')||'',gConnected=()=>!!ls('bs_gon'),gValid=()=>!!(GD.tok&&Date.now()<GD.exp-60000);
+const canWrite=()=>SRC==='local'&&!!(DIR&&DIR.getFileHandle);
+const idb=(m,k,v)=>new Promise((res,rej)=>{const r=indexedDB.open('billing_studio',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onerror=()=>rej(r.error);r.onsuccess=()=>{const t=r.result.transaction('kv',m==='get'?'readonly':'readwrite'),o=t.objectStore('kv'),q=m==='get'?o.get(k):m==='put'?o.put(v,k):o.delete(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}});
+async function perm(ask){if(!DIR)return false;if(!DIR.queryPermission)return true;const o={mode:'readwrite'};if(await DIR.queryPermission(o)==='granted')return true;return !!ask&&(await DIR.requestPermission(o))==='granted'}
+async function readPayload(file){const rx=/BSDATA:([A-Za-z0-9+\/=]+)/;
+ for(const n of [262144,0]){const buf=await (n?file.slice(Math.max(0,file.size-n)):file).arrayBuffer(),m=rx.exec(new TextDecoder('latin1').decode(buf));
+  if(m){try{return dec(m[1])}catch(_){return null}}if(!n||file.size<=n)break}return null}
+function dirUI(){const d=SRC==='drive';$$('#srcSeg button').forEach(b=>b.classList.toggle('on',b.dataset.src===SRC));
+ $('#dirTxt').textContent=d?(gConnected()?(GD.email||'Google Drive'):'Connect Drive'):(DIR?DIR.name:'Choose folder');
+ $('#dirBtn').title=d?(gConnected()?'Connected to Google Drive'+(GD.email?' as '+GD.email:'')+' · PDFs go to the “'+FOLDER+'” folder':'Sign in with Google to save PDFs to your Drive'):(DIR?'PDFs are saved to “'+DIR.name+'”. Click to change folder.':'Choose the folder where PDFs are saved')}
+async function indexOne(handle,name){const f=await handle.getFile();LIB=LIB.filter(r=>r.id!==name);LIB.push({id:name,name,handle,lm:f.lastModified,size:f.size,data:await readPayload(f)});renderLib()}
+
+/* --- Google Drive --- */
+const loadGIS=()=>window.google?.accounts?.oauth2?Promise.resolve():(gisP||(gisP=new Promise((res,rej)=>{const x=document.createElement('script');x.src='https://accounts.google.com/gsi/client';x.async=true;x.onload=()=>res();x.onerror=()=>{gisP=null;rej(new Error('gis'))};document.head.appendChild(x)})));
+async function gAuth(fresh){
+ if(!fresh&&gValid())return GD.tok;
+ const id=CID();if(!id)throw new Error('noid');
+ await loadGIS();
+ return new Promise((res,rej)=>{const tc=google.accounts.oauth2.initTokenClient({client_id:id,scope:SCOPE,hint:GD.email||undefined,
+  callback:r=>{if(r.error)return rej(new Error(r.error));GD.tok=r.access_token;GD.exp=Date.now()+(+r.expires_in||3600)*1000;res(GD.tok)},
+  error_callback:er=>rej(new Error((er&&er.type)||'unknown'))});
+  tc.requestAccessToken({prompt:fresh?'select_account':''})})}
+async function gapi(url,opt={},retry=true){const t=await gAuth(),r=await fetch(url,{...opt,headers:{...(opt.headers||{}),Authorization:'Bearer '+t}});
+ if(r.status===401&&retry){GD.tok='';return gapi(url,opt,false)}
+ if(!r.ok){const tx=await r.text().catch(()=>''),er=new Error('drive '+r.status+' '+tx.slice(0,300));er.status=r.status;throw er}return r}
+const gq=v=>String(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+async function gFolder(){if(GD.folder)return GD.folder;
+ const q=encodeURIComponent(`mimeType='application/vnd.google-apps.folder' and name='${FOLDER}' and trashed=false`),j=await(await gapi(`${API}/files?q=${q}&fields=files(id)&pageSize=5`)).json();
+ if(j.files&&j.files.length)return GD.folder=j.files[0].id;
+ const c=await(await gapi(`${API}/files?fields=id`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:FOLDER,mimeType:'application/vnd.google-apps.folder'})})).json();return GD.folder=c.id}
+async function gList(){const f=await gFolder();let tk='',out=[];
+ do{const q=encodeURIComponent(`'${f}' in parents and trashed=false and mimeType='application/pdf'`),j=await(await gapi(`${API}/files?q=${q}&fields=nextPageToken,files(id,name,modifiedTime,size,webViewLink,appProperties)&pageSize=1000${tk?'&pageToken='+tk:''}`)).json();out.push(...(j.files||[]));tk=j.nextPageToken}while(tk);return out}
+async function gFind(name){const f=await gFolder(),q=encodeURIComponent(`'${f}' in parents and name='${gq(name)}' and trashed=false and mimeType='application/pdf'`),j=await(await gapi(`${API}/files?q=${q}&fields=files(id,name)&pageSize=1`)).json();return(j.files&&j.files[0])||null}
+async function gPut(blob,name,props,id){const meta={name,mimeType:'application/pdf'};if(props&&Object.keys(props).length)meta.appProperties=props;if(!id)meta.parents=[await gFolder()];
+ const bd='bs'+Math.random().toString(36).slice(2),body=new Blob([`--${bd}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${bd}\r\nContent-Type: application/pdf\r\n\r\n`,blob,`\r\n--${bd}--`]);
+ return(await gapi(`https://www.googleapis.com/upload/drive/v3/files${id?'/'+id:''}?uploadType=multipart&fields=id,name,modifiedTime,size,webViewLink,appProperties`,{method:id?'PATCH':'POST',headers:{'Content-Type':'multipart/related; boundary='+bd},body})).json()}
+/* the list view reads these small per-file properties, so no PDF has to be downloaded to fill the Library */
+const PK={doc:'d',type:'t',date:'dt',valid:'vu',client:'c',phone:'p',email:'em',event:'ev',venue:'vn',pkg:'pk',company:'co',cur:'cu',total:'tot',paid:'pd',bal:'bal',status:'st'};
+function toProps(sum,upd){const o={bs:'1'},te=new TextEncoder();for(const k in PK){const key=PK[k];let v=String(sum[k]??'');while(te.encode(key+v).length>124)v=v.slice(0,-1);if(v)o[key]=v;else if(upd)o[key]=null}return o}
+function fromProps(p){if(!p||p.bs!=='1')return null;const g=k=>p[PK[k]]||'';return{sum:{doc:g('doc'),type:g('type'),date:g('date'),valid:g('valid'),client:g('client'),phone:g('phone'),email:g('email'),event:g('event'),venue:g('venue'),pkg:g('pkg'),company:g('company'),cur:g('cur')||'LKR',total:+g('total')||0,paid:+g('paid')||0,bal:+g('bal')||0,status:g('status')}}}
+const gRec=f=>({id:f.id,gid:f.id,name:f.name,lm:Date.parse(f.modifiedTime)||0,size:+f.size||0,link:f.webViewLink,data:fromProps(f.appProperties)});
+function gErr(er){console.error(er);const m=(er&&er.message)||'';let t='Google Drive error. Please try again.';
+ if(m==='noid')t='Add your Google Client ID first (Library tab).';
+ else if(m==='gis')t='Could not reach Google sign-in. Check your internet connection.';
+ else if(m==='popup_closed')t='Google sign-in was closed before it finished.';
+ else if(m==='popup_failed_to_open')t='Your browser blocked the Google sign-in pop-up. Allow pop-ups for this page and try again.';
+ else if(m==='access_denied')t='Google sign-in was declined.';
+ else if(/accessNotConfigured|has not been used|SERVICE_DISABLED/i.test(m))t='The Google Drive API is not enabled in your Google Cloud project yet.';
+ else if(/^drive 403/.test(m))t='Google refused the request (403). Check that the Drive API is enabled and this account is a test user.';
+ else if(/^drive 401/.test(m))t='Google sign-in expired. Reconnect and try again.';
+ else if(/^drive 4/.test(m))t='Google Drive rejected the request ('+m.slice(6,9)+').';
+ toast(t,'#dc2626')}
+async function gConnect(){
+ if(!/^https?:$/.test(location.protocol)){toast('Google sign-in only works when this page is hosted at an https:// address (or http://localhost).','#dc2626');return false}
+ if(!CID()){setMode('lib');renderLib();toast('Add your Google Client ID first (one-time setup)','#d97706');return false}
+ try{await gAuth(!gConnected());ls('bs_gon','1');
+  try{const a=await(await gapi(API+'/about?fields=user')).json();GD.email=(a.user&&a.user.emailAddress)||'';ls('bs_gemail',GD.email)}catch(_){}
+  needPerm=false;dirUI();return true}
+ catch(er){gErr(er);return false}}
+async function gScan(interactive){
+ if(!CID()||!gConnected()){renderLib();return}
+ try{if(!gValid()){if(!interactive){needPerm=true;renderLib();return}await gAuth()}
+  needPerm=false;scanning=true;renderLib();LIB=(await gList()).map(gRec)}
+ catch(er){if(/^drive/.test(er.message||''))gErr(er);else{needPerm=true;if(interactive&&er.message!=='popup_closed')gErr(er)}}
+ scanning=false;renderLib()}
+function gOff(){if(!confirm('Disconnect Google Drive?\n\nYour PDFs stay in your Drive. You will need to sign in again to use them here.'))return;
+ try{if(GD.tok&&window.google?.accounts?.oauth2)google.accounts.oauth2.revoke(GD.tok,()=>{})}catch(_){}
+ GD={tok:'',exp:0,email:'',folder:''};ls('bs_gon',null);ls('bs_gemail',null);LIB=[];needPerm=false;dirUI();renderLib();toast('Disconnected from Google Drive')}
+function saveCid(){const v=($('#cidIn')?.value||'').trim();if(!/\.apps\.googleusercontent\.com$/.test(v)){toast('That doesn’t look like a Client ID. It ends in .apps.googleusercontent.com','#dc2626');return}
+ ls('bs_cid',v);GD.tok='';renderLib();toast('Client ID saved')}
+$('#gSetBtn').onclick=()=>{const v=prompt('Google OAuth Client ID',CID());if(v===null)return;ls('bs_cid',v.trim());GD={tok:'',exp:0,email:'',folder:''};ls('bs_gon',null);ls('bs_gemail',null);LIB=[];needPerm=false;dirUI();renderLib()};
+$('#gOffBtn').onclick=gOff;
+$('#upBtn').onclick=()=>$('#upIn').click();
+$('#upIn').onchange=async ev=>{const fs=[...ev.target.files];ev.target.value='';if(!fs.length)return;const L=$('#load');
+ try{await gAuth()}catch(er){gErr(er);return}
+ let up=0,sk=0,bad=0;L.classList.add('show');
+ try{for(let i=0;i<fs.length;i++){L.textContent=`Uploading ${i+1} of ${fs.length}…`;const f=fs[i];
+  try{if(await gFind(f.name)){sk++;continue}const d=await readPayload(f);await gPut(f,f.name,d?toProps(d.sum):{});up++}catch(er){if(/^drive 40[13]/.test(er.message||''))throw er;bad++}}}
+ catch(er){gErr(er)}
+ L.classList.remove('show');L.textContent='Rendering…';await gScan(true);
+ toast(`Uploaded ${up}`+(sk?` · skipped ${sk} already in Drive`:'')+(bad?` · ${bad} failed`:''),bad?'#d97706':undefined)};
+
+/* --- computer folder --- */
+async function scan(interactive){
+ if(SRC==='drive')return gScan(interactive);
+ if(!DIR)return;
+ try{if(!(await perm(false))){needPerm=true;renderLib();return}needPerm=false;scanning=true;renderLib();
+  const items=[];if(DIR.entries){for await(const [n,h] of DIR.entries())if(h.kind==='file'&&/\.pdf$/i.test(n))items.push({name:n,handle:h})}else items.push(...DIR._files);
+  const cache=new Map(LIB.map(r=>[r.id,r]));LIB=[];
+  for(let i=0;i<items.length;i+=8)await Promise.all(items.slice(i,i+8).map(async it=>{try{const f=it.file||await it.handle.getFile(),c=cache.get(it.name);
+   if(c&&c.lm===f.lastModified&&c.size===f.size){LIB.push(c);return}
+   LIB.push({id:it.name,name:it.name,handle:it.handle,file:it.file,lm:f.lastModified,size:f.size,data:await readPayload(f)})}catch(_){}}));
+ }catch(err){console.error(err);DIR=null;LIB=[];try{await idb('del','dir')}catch(_){}dirUI();toast('Could not read that folder. Please choose it again.','#dc2626')}
+ scanning=false;renderLib()}
+async function chooseDir(){
+ if(FSA){try{const h=await showDirectoryPicker({id:'billing-studio',mode:'readwrite'});DIR=h;LIB=[];needPerm=false;try{await idb('put','dir',h)}catch(_){}dirUI();await scan();toast('Folder set: '+h.name)}catch(err){if(err.name!=='AbortError'){console.error(err);toast('Could not open that folder','#dc2626')}}}
+ else $('#dirIn').click()}
+async function topAction(){if(SRC==='local')return chooseDir();if(await gConnect())scan(true)}
+async function grant(){if(SRC==='drive'){if(await gConnect())scan(true);return}if(await perm(true))scan();else toast('Permission was not granted','#dc2626')}
+$('#dirIn').onchange=async ev=>{const fl=[...ev.target.files].filter(f=>/\.pdf$/i.test(f.name)&&(f.webkitRelativePath||'').split('/').length===2);const nm=((ev.target.files[0]||{}).webkitRelativePath||'').split('/')[0]||'Folder';
+ DIR={name:nm,readonly:true,_files:fl.map(f=>({name:f.name,file:f}))};LIB=[];needPerm=false;ev.target.value='';dirUI();await scan()};
+$('#dirBtn').onclick=$('#dirBtn2').onclick=topAction;$('#rescanBtn').onclick=()=>scan(true);
+function setSrc(v){if(v===SRC)return;SRC=v;ls('bs_src',v);LIB=[];needPerm=false;if(v==='drive')loadGIS().catch(()=>{});dirUI();renderLib();
+ if(document.body.classList.contains('lib')&&(v==='drive'?gConnected():DIR))scan(true)}
+function setMode(m){document.body.classList.toggle('lib',m==='lib');$$('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
+ if(m==='lib'){renderLib();if(SRC==='drive'?gConnected():DIR)scan(true)}else setTimeout(fit,0)}
+function openRec(data,name){if(dirty&&!confirm('Replace the document currently in the editor?\nUnsaved changes will be lost.'))return;
+ const st=data.state||{},d=defaults(),keep={logo:S.logo,logoW:S.logoW};
+ S=Object.assign(d,st,{ag:{...d.ag,...st.ag},show:{...d.show,...st.show},client:{...d.client,...st.client},pkg:{...d.pkg,...st.pkg},bank:{...d.bank,...st.bank}},keep);
+ loadedFrom=name?SRC+':'+name:null;setMode('ed');lists();update();dirty=false;toast('Loaded '+(data.sum?.doc||'document'))}
+async function editRec(r){let d=r.data;
+ if(r.gid&&!(d&&d.state)){$('#load').textContent='Opening…';$('#load').classList.add('show');
+  try{d=await readPayload(await(await gapi(`${API}/files/${r.gid}?alt=media`)).blob())}catch(er){gErr(er);d=null;$('#load').classList.remove('show');$('#load').textContent='Rendering…';return}
+  $('#load').classList.remove('show');$('#load').textContent='Rendering…'}
+ if(d&&d.state)openRec(d,r.name);else toast('This PDF has no saved data to load.','#d97706')}
+async function viewPdf(id){const r=LIB.find(x=>x.id===id);if(!r)return;
+ if(r.gid){window.open(r.link||`https://drive.google.com/file/d/${r.gid}/view`,'_blank');return}
+ try{const f=r.file||await r.handle.getFile();window.open(URL.createObjectURL(f),'_blank')}catch(_){toast('Could not open that PDF','#dc2626')}}
+$('#impBtn').onclick=()=>$('#impIn').click();
+$('#impIn').onchange=async ev=>{const f=ev.target.files[0];ev.target.value='';if(!f)return;const d=await readPayload(f);if(d)openRec(d,null);else toast('That PDF wasn’t created by Billing Studio, so there is no data to load.','#d97706')};
+const S1=r=>r.data?.sum||{date:'',client:r.name,total:0,doc:r.name};
+const SORTS={new:(a,b)=>b.date.localeCompare(a.date)||b.doc.localeCompare(a.doc),old:(a,b)=>(a.date||'9999').localeCompare(b.date||'9999')||a.doc.localeCompare(b.doc),high:(a,b)=>b.total-a.total,low:(a,b)=>a.total-b.total,client:(a,b)=>a.client.localeCompare(b.client),doc:(a,b)=>a.doc.localeCompare(b.doc)};
+function setupPanel(){const og=/^https?:$/.test(location.protocol)?location.origin:null;
+ return`<h3>Set up Google Drive (one time)</h3><p>Google needs to know this app belongs to you. It’s free and takes about 10 minutes.</p><ol class="steps">
+<li>Open <b>console.cloud.google.com</b> and create a project.</li>
+<li><b>APIs &amp; Services → Library</b>: enable <b>Google Drive API</b>.</li>
+<li><b>OAuth consent screen</b> (Google Auth Platform): choose <b>External</b>, add the scope <code>…/auth/drive.file</code>, and add each Google account that will sign in as a <b>Test user</b> (or publish the app).</li>
+<li><b>Credentials → Create credentials → OAuth client ID → Web application</b>. Under <b>Authorised JavaScript origins</b> add ${og?`<code>${e(og)}</code>`:'the https:// address where you host this page'}.</li>
+<li>Paste the Client ID here:</li></ol>
+${og?'':'<p class="warn">This page is open from a file on your computer. Google sign-in only works when the page is hosted at an https:// address (or http://localhost).</p>'}
+<div class="cid"><input id="cidIn" placeholder="1234567890-abc….apps.googleusercontent.com" autocomplete="off"><button class="btn pri" data-act="savecid">Save</button></div>`}
+function renderLib(){
+ const dr=SRC==='drive',conn=dr&&gConnected()&&!!CID();
+ $('#libCnt').textContent=LIB.length||'';
+ $('#dirBtn2').textContent=dr?'Connect Google Drive':(DIR?'Change folder':'Choose folder');$('#dirBtn2').hidden=dr&&(conn||!CID());
+ $('#libSub').textContent=dr?'Google Drive · “'+FOLDER+'” folder'+(GD.email&&conn?' · '+GD.email:'')+(LIB.length?' · '+LIB.length+' PDF'+(LIB.length>1?'s':''):''):(DIR?DIR.name+(DIR.readonly?' · read-only (this browser can’t save into folders)':'')+(LIB.length?' · '+LIB.length+' PDF'+(LIB.length>1?'s':''):''):'No folder selected');
+ $('#rescanBtn').hidden=!(dr?conn&&!needPerm:DIR&&!needPerm);$('#upBtn').hidden=!(dr&&conn&&!needPerm);$('#gSetBtn').hidden=!dr;$('#gOffBtn').hidden=!conn;
+ let msg='';
+ if(dr){
+  if(!CID())msg=setupPanel();
+  else if(!gConnected())msg='<h3>Connect your Google Drive</h3><p>Sign in with Google and your invoices and quotations are saved into a “'+FOLDER+'” folder in your Drive. Anyone who signs in sees only their own files.</p><button class="btn pri" data-act="gconn">Connect Google Drive</button>';
+  else if(needPerm)msg='<h3>Reconnect to Google Drive</h3><p>Google sign-ins expire after about an hour. Click below to continue as '+e(GD.email||'your account')+'.</p><button class="btn pri" data-act="grant">Reconnect</button>';
+  else if(scanning&&!LIB.length)msg='<h3>Reading your Drive…</h3>';
+  else if(!LIB.length)msg='<h3>No PDFs in your Drive folder yet</h3><p>Save an invoice or quotation with “Save PDF”, or use “Upload PDFs to Drive” to bring in ones you already have.</p>'}
+ else{
+  if(!DIR)msg=`<h3>Keep every invoice &amp; quotation in one folder</h3><p>Pick a folder and each PDF you save goes straight into it. Everything in that folder shows up here, so you can search, filter and re-open any document.</p>${FSA?'':'<p class="warn">This browser can’t save into a folder directly. Use Chrome or Edge for that. You can still pick a folder to browse the PDFs in it.</p>'}<button class="btn pri" data-act="choose">Choose folder</button><p>Prefer the cloud? Switch to <b>Google Drive</b> at the top.</p>`;
+  else if(needPerm)msg=`<h3>Allow access to “${e(DIR.name)}”</h3><p>Your browser needs your permission again before it can read and save to this folder.</p><button class="btn pri" data-act="grant">Allow access</button>`;
+  else if(scanning&&!LIB.length)msg='<h3>Reading PDFs…</h3>';
+  else if(!LIB.length)msg='<h3>No PDFs in this folder yet</h3><p>Save an invoice or quotation with “Save PDF” and it will appear here.</p>'}
+ const ci=$('#cidIn'),keep=ci?ci.value:'';
+ $('#libEmpty').hidden=!msg;if($('#libEmpty').dataset.m!==msg){$('#libEmpty').innerHTML=msg;$('#libEmpty').dataset.m=msg;if(keep&&$('#cidIn'))$('#cidIn').value=keep}$('#libMain').hidden=!!msg;if(msg)return;
+ const cos=[...new Set(LIB.map(r=>r.data?.sum.company).filter(Boolean))].sort(),sel=$('#fCo'),cur=sel.value,sig=cos.join('|');
+ if(sel.dataset.sig!==sig){sel.innerHTML='<option value="all">All companies</option>'+cos.map(c=>`<option>${e(c)}</option>`).join('');sel.dataset.sig=sig;sel.value=cos.includes(cur)?cur:'all'}
+ const q=$('#q').value.toLowerCase().split(/\s+/).filter(Boolean),ty=$('#fType').value,sf=$('#fStat').value,co=sel.value,from=$('#fFrom').value,to=$('#fTo').value;
+ const list=LIB.filter(r=>{const s=r.data?.sum;
+  if(ty!=='all'&&(!s||s.type!==ty))return false;if(sf!=='all'&&(!s||s.status!==sf))return false;if(co!=='all'&&(!s||s.company!==co))return false;
+  if(from&&(!s||!s.date||s.date<from))return false;if(to&&(!s||!s.date||s.date>to))return false;
+  const hay=(r.name+' '+(s?[s.doc,s.client,s.phone,s.email,s.event,s.venue,s.pkg,s.company,s.status,s.type,s.total,s.bal,s.date,fd(s.date)].join(' '):'')).toLowerCase();
+  return q.every(w=>hay.includes(w))}).sort((a,b)=>SORTS[$('#fSort').value](S1(a),S1(b)));
+ const by={};list.forEach(r=>{const s=r.data?.sum;if(s&&s.type==='invoice'){const m=by[s.cur]||(by[s.cur]={t:0,p:0,b:0});m.t+=s.total;m.p+=s.paid;m.b+=s.bal}});
+ const tot=k=>Object.entries(by).map(([c,v])=>money(v[k],c)).join(' · ')||'—';
+ $('#stats').innerHTML=`<div class="st"><small>Showing</small><b>${list.length} of ${LIB.length}</b></div><div class="st"><small>Invoiced</small><b>${tot('t')}</b></div><div class="st"><small>Collected</small><b>${tot('p')}</b></div><div class="st"><small>Outstanding</small><b>${tot('b')}</b></div>`;
+ const cls={Paid:'paid',Partial:'partial',Unpaid:'unpaid',Quotation:'quo'};
+ $('#rows').innerHTML=list.length?list.map(r=>{const s=r.data?.sum,n=e(r.name),id=e(r.id);
+  if(!s)return`<div class="lr"><div><b>${n}</b></div><div><span class="pl na">PDF</span></div><div class="mut" style="grid-column:span 5">Not created by Billing Studio, so there is no data to load${r.size?' · '+Math.max(1,Math.round(r.size/1024))+' KB':''}</div><div class="act"><button class="btn" data-lview="${id}">View</button></div></div>`;
+  const inv=s.type==='invoice';
+  return`<div class="lr"><div><b>${e(s.doc)}</b><small>${e(s.company)}</small></div><div><span class="pl ${inv?'inv':'quo'}">${inv?'Invoice':'Quote'}</span></div><div><b>${e(s.client)||'—'}</b><small>${[s.phone,s.email].filter(Boolean).map(e).join(' · ')}</small></div><div><b>${e(s.event)||'—'}</b><small>${e(s.venue)}</small></div><div>${fd(s.date)}</div><div class="rt"><b>${money(s.total,s.cur)}</b>${inv&&s.bal>0?`<small>Due ${money(s.bal,s.cur)}</small>`:''}</div><div><span class="pl ${cls[s.status]||'na'}">${e(s.status)}</span></div><div class="act"><button class="btn" data-lopen="${id}">Edit</button><button class="btn" data-lview="${id}">PDF</button></div></div>`}).join(''):'<div class="none">No documents match your search or filters.</div>'}
+['q','fType','fStat','fCo','fFrom','fTo','fSort'].forEach(id=>$('#'+id).addEventListener('input',renderLib));
+$('#fClr').onclick=()=>{$('#q').value='';['fType','fStat','fCo'].forEach(id=>$('#'+id).value='all');$('#fFrom').value=$('#fTo').value='';$('#fSort').value='new';renderLib()};
+(async()=>{if(SRC==='drive')loadGIS().catch(()=>{});if(!FSA)return;try{const h=await idb('get','dir');if(h){DIR=h;dirUI();if(SRC==='local'){if(await perm(false))scan();else{needPerm=true;renderLib()}}}}catch(_){}})();
+(()=>{const m=$('#moreMenu'),b=$('#moreBtn');b.onclick=ev=>{ev.stopPropagation();b.setAttribute('aria-expanded',m.classList.toggle('open'))};
+ document.addEventListener('click',ev=>{if(!m.contains(ev.target)||ev.target.closest('.mi')){m.classList.remove('open');b.setAttribute('aria-expanded','false')}});
+ addEventListener('keydown',ev=>{if(ev.key==='Escape'){m.classList.remove('open');b.setAttribute('aria-expanded','false')}})})();
+lists();update();document.fonts.ready.then(fit);dirty=!!(S.client.name||S.pkg.name||S.pkg.base);dirUI();renderLib();
+</script></body></html>
