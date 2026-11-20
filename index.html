@@ -433,11 +433,11 @@ html[data-theme] .empty{border-radius:20px}
 .co .mh{padding-top:20px}.co .mh h3{font-size:18px;letter-spacing:-.01em}.co .mh small{font-size:12.5px;line-height:1.5;display:block;margin-top:3px}
 .costeps{display:flex;align-items:center;gap:10px;padding:10px 20px 4px;font:600 12.5px Inter;color:var(--mut)}
 .costeps[hidden]{display:none}
-.cs{display:flex;align-items:center;white-space:nowrap}
-.cs b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--bd);color:var(--mut);font-size:11px;margin-right:7px;transition:background .2s,color .2s}
-.cs.on{color:var(--ink)}.cs.on b{background:var(--m);color:#fff;box-shadow:0 0 0 4px var(--ring)}
-.cs.done b{background:color-mix(in srgb,var(--m) 22%,var(--panel));color:var(--m)}
-.cl{flex:1;height:2px;border-radius:2px;background:var(--bd)}
+.co-step{display:flex;align-items:center;white-space:nowrap}
+.co-step b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--bd);color:var(--mut);font-size:11px;margin-right:7px;transition:background .2s,color .2s}
+.co-step.on{color:var(--ink)}.co-step.on b{background:var(--m);color:#fff;box-shadow:0 0 0 4px var(--ring)}
+.co-step.done b{background:color-mix(in srgb,var(--m) 22%,var(--panel));color:var(--m)}
+.co-line{flex:1;height:2px;border-radius:2px;background:var(--bd)}
 .co .mb{padding:12px 20px 6px;max-height:min(58vh,520px);overflow:auto}
 .co .sec{padding:0}
 .co .mf{padding:12px 20px 18px;border-top:1px solid var(--bd);margin-top:10px;align-items:center}
@@ -577,7 +577,7 @@ html[data-theme] .empty{border-radius:20px}
 <input type="file" id="impIn" accept="application/pdf,.pdf" hidden><input type="file" id="upIn" accept="application/pdf,.pdf" multiple hidden><input type="file" id="dirIn" webkitdirectory hidden>
 <div class="mdl" id="coMdl" role="dialog" aria-modal="true" aria-labelledby="coTitle"><div class="mbox co">
  <div class="mh"><div><h3 id="coTitle">Set up your business</h3><small id="coSub">These details appear at the top of your invoices and quotations.</small></div><button class="rm" id="coX" aria-label="Close">×</button></div>
- <div class="costeps" id="coSteps"><span class="cs on" data-s="1"><b>1</b>Business</span><i class="cl"></i><span class="cs" data-s="2"><b>2</b>Payment</span></div>
+ <div class="costeps" id="coSteps"><span class="co-step on" data-s="1"><b>1</b>Business</span><i class="co-line"></i><span class="co-step" data-s="2"><b>2</b>Payment</span></div>
  <div class="mb" id="coBody"><p class="coerr" id="coErr" hidden>Please enter your business name to continue.</p></div>
  <div class="mf"><button class="btn" id="coSkip">Skip for now</button><span class="sp"></span><button class="btn" id="coBack" hidden>Back</button><button class="btn pri" id="coNext">Continue</button></div>
 </div></div>
@@ -1212,7 +1212,7 @@ ed.addEventListener('toggle',e=>{const d=e.target;if(!d||d.tagName!=='DETAILS'||
   q('#coTitle').textContent=step===1?'Set up your business':'Payment details';
   q('#coSub').textContent=step===1?'These details appear at the top of your invoices and quotations.':'Shown on invoices so clients know where to pay. You can leave this blank.';
   secB.hidden=step!==1;secK.hidden=step!==2;err.hidden=true;nameEl().classList.remove('err');
-  steps.querySelectorAll('.cs').forEach(e=>{const n=+e.dataset.s;e.classList.toggle('on',n===step);e.classList.toggle('done',n<step)});
+  steps.querySelectorAll('.co-step').forEach(e=>{const n=+e.dataset.s;e.classList.toggle('on',n===step);e.classList.toggle('done',n<step)});
   bk.hidden=step===1;nxt.textContent=step<total?'Continue':'Save & finish';skip.textContent=step===1?'Skip for now':'Skip';
   m.querySelector('.mb').scrollTop=0}
  function openCo(){if(open)return;open=true;step=1;total=(typeof S!=='undefined'&&S.type==='invoice')?2:1;
